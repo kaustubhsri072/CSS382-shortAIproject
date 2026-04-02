@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Study Planner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="top">
+        <h1>Study Planner</h1>
+        <p>Track assignments, exams, projects, and deadlines.</p>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <section class="flash-wrap">
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </section>
+      {% endif %}
+      {% endwith %}
+
+      <section class="grid stats">
+        <article class="card stat"><h3>Total</h3><p>{{ stats.total }}</p></article>
+        <article class="card stat"><h3>Pending</h3><p>{{ stats.pending }}</p></article>
+        <article class="card stat"><h3>Completed</h3><p>{{ stats.completed }}</p></article>
+        <article class="card stat"><h3>Overdue</h3><p>{{ stats.overdue }}</p></article>
+        <article class="card stat"><h3>Due ≤ 7 days</h3><p>{{ stats.due_soon }}</p></article>
+      </section>
+
+      <section class="card form-card">
+        <h2>Add Task</h2>
+        <form action="{{ url_for('add_task') }}" method="post" class="task-form">
+          <label>
+            Title
+            <input type="text" name="title" required placeholder="HW 4 or Midterm Review" />
+          </label>
+
+          <label>
+            Course
+            <input type="text" name="course" placeholder="CSS382" />
+          </label>
+
+          <label>
+            Due Date
+            <input type="date" name="due_date" min="{{ today }}" required />
+          </label>
+
+          <label>
+            Priority
+            <select name="priority">
+              <option value="1">1 - Very Low</option>
+              <option value="2">2 - Low</option>
+              <option value="3" selected>3 - Medium</option>
+              <option value="4">4 - High</option>
+              <option value="5">5 - Critical</option>
+            </select>
+          </label>
+
+          <label>
+            Type
+            <select name="task_type">
+              <option value="assignment" selected>Assignment</option>
+              <option value="exam">Exam</option>
+              <option value="project">Project</option>
+              <option value="reading">Reading</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+
+          <label class="full">
+            Notes
+            <textarea name="notes" rows="2" placeholder="Optional details"></textarea>
+          </label>
+
+          <button type="submit">Add Task</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Pending Tasks</h2>
+        {% if pending_tasks %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Due</th>
+                <th>Priority</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for task in pending_tasks %}
+              <tr>
+                <td>
+                  <strong>{{ task.title }}</strong>
+                  {% if task.course %}<span class="muted"> · {{ task.course }}</span>{% endif %}
+                  {% if task.notes %}<div class="muted note">{{ task.notes }}</div>{% endif %}
+                </td>
+                <td>{{ task.due_date }}</td>
+                <td>{{ task.priority }} ({{ priority_label(task.priority) }})</td>
+                <td>{{ task.task_type }}</td>
+                <td>{{ due_status(task.due_date, task.completed) }}</td>
+                <td class="actions">
+                  <div class="actions-wrap">
+                    <form action="{{ url_for('done_task', task_id=task.id) }}" method="post">
+                      <button class="small success" type="submit">Done</button>
+                    </form>
+                    <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post">
+                      <button class="small danger" type="submit">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="muted">No pending tasks.</p>
+        {% endif %}
+      </section>
+
+      <section class="card">
+        <h2>Completed Tasks</h2>
+        {% if completed_tasks %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Due</th>
+                <th>Priority</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for task in completed_tasks %}
+              <tr>
+                <td>
+                  <strong>{{ task.title }}</strong>
+                  {% if task.course %}<span class="muted"> · {{ task.course }}</span>{% endif %}
+                </td>
+                <td>{{ task.due_date }}</td>
+                <td>{{ task.priority }} ({{ priority_label(task.priority) }})</td>
+                <td>{{ task.task_type }}</td>
+                <td class="actions">
+                  <div class="actions-wrap">
+                    <form action="{{ url_for('undo_task', task_id=task.id) }}" method="post">
+                      <button class="small" type="submit">Undo</button>
+                    </form>
+                    <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post">
+                      <button class="small danger" type="submit">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="muted">No completed tasks yet.</p>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>
