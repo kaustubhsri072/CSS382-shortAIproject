@@ -1,5 +1,12 @@
 # Study Planner (Python Web App)
 
+## Project Info
+- NetID: kausri72
+- Name: Kaustubh Srikantapuram
+- GitHub Repository: https://github.com/kaustubhsri072/CSS382-shortAIproject
+- Deployed Site: Local Host
+
+## Idea
 A simple Flask web app to track assignments, exams, projects, and deadlines.
 
 ## Features
